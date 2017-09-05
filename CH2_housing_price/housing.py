@@ -8,6 +8,9 @@ import numpy as np
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.pipeline import FeatureUnion
+from sklearn.base import BaseEstimator, TransformerMixin
 
 # to make this notebook's output stable across runs
 np.random.seed(42)
@@ -35,9 +38,14 @@ def plot(data):
     data.hist(bins=50, figsize=(20,15))
     plt.show()
     
-#_________________________________Lab Starts_________________________
+#_____________________________Lab Starts_________________________
 import os
 import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelBinarizer
+
 HOUSING_PATH = ""
 
 def load_housing_data(housing_path = HOUSING_PATH):
@@ -74,13 +82,39 @@ def data_cleaning(data):
     imputer.fit(data_num)
     X = imputer.transform(data_num)
     return pd.DataFrame(X, columns = data_num.columns)
+
+class DataFrameSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, attribute_names):
+        self.attribute_names = attribute_names
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X):
+        return X[self.attribute_names].values
     
+def pipeline(data):
+    num_attribs = list(data)
+    cat_attribs = ["ocean_proximity"]
+    num_pipeline = Pipeline([('imputer', Imputer(strategy="median")),('std_scaler', StandardScaler()),])
+    cat_pipeline = Pipeline([('selector', DataFrameSelector(cat_attribs)),('label_binarizer', LabelBinarizer()),])
+    full_pipeline = FeatureUnion(transformer_list=[("num_pipeline", num_pipeline),("cat_pipeline", cat_pipeline),])
+    return num_pipeline.fit_transform(data)
+
+from sklearn.metrics import mean_squared_error
+def error(model, test_set, labels):
+    predictions = lin_reg.predict(test_set)
+    lin_mse = mean_squared_error(labels, predictions)
+    return np.sqrt(lin_mse)
+
 def main():
     housing = load_housing_data()
     #give_a_quick_view(housing)
     train_set, test_set = generating_test_set(housing)
     #visualization(train_set)
-    print(correlation(housing, "median_house_value"))
+    #print(correlation(housing, "median_house_value"))
+    data_cleaning(housing)
+    #housing = pipeline(housing)
+    lin_reg = LinearRegression()
+    #lin_reg.fit(housing, housing["median_house_value"])
     
 if __name__ == "__main__":
     main()
