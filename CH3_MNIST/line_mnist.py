@@ -63,7 +63,7 @@ forest_clf = RandomForestClassifier(random_state=42)
 #forest_clf.fit(X_train, y_train)
 #forest_clf.predict([5])
 
-#error analysi
+#error analysis
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train.astype(np.float64))
@@ -73,4 +73,5 @@ y_train_pred = cross_val_predict(sgd_clf, X_train_scaled, y_train, cv=3)
 conf_mx = confusion_matrix(y_train, y_train_pred)
 plt.matshow(conf_mx, cmap=plt.cm.gray)
 plt.show()
+
 
